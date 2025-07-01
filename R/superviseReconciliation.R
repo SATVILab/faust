@@ -1,3 +1,7 @@
+
+projectPath = projr::projr_path_get("cache-a055", "faust_v1")
+debugFlag = TRUE
+
 .superviseReconciliation <- function(projectPath,debugFlag)
 {
     # parentNode is whatever is stored in the sanitizedCellPopStr.rds file - often "root"
@@ -10,6 +14,14 @@
                                        "faustData",
                                        "metaData",
                                        "selectionList.rds"))
+
+    selectionList = list(
+        "CD3" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
+        "CD4" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
+        "CD8" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
+        "HLADR" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
+        "Perforin" = list("actionType" = "PostSelection", action = c(0.45, 0.55))
+    )
 
     if (length(selectionList) > 0){
         if (debugFlag) print("Selection specific reconciled annotation boundaries.")
@@ -30,19 +42,34 @@
             print("Proceding as if these are controlled values.")
         }
         for (channel in supervisedChannels) {
+            # channel = "CD4"
+            # channel = "HLADR"
             # use the selection list to set the standard
             # current annotation boundaries
             tmpList <- outList[[channel]] 
             # user-specified quantiles which extreme annotation values should be shrunk towards
             supervision <- selectionList[[channel]] 
-            # tmpList[[1]] contains gates for channel for all samples
-            boundaries = quantile(as.numeric(resListPrep[["Ki67"]]), c(0.1, 0.9))
-            # all gates lower than boundaries[1] are set to boundaries[1]
-            for(gate_num in 1:length(tmpList)){
-                if(tmpList[[gate_num]] < boundaries[[1]]){tmpList[[gate_num]][1] <- boundaries[1]}
-                else if(tmpList[[gate_num]] > boundaries[2]){tmpList[[gate_num]][1] <- boundaries[2]}
-            } # could make more efficient if we sort tmpList first
+            
+            # for each annotation boundary for a given sample and marker
+            for(i in 1:length(tmpList[[1]])){
+                # i = 1
+                vals = sapply(tmpList, function(x) x[i]) # get all of the ith annotation boundaries
+                boundaries = quantile(vals, supervision$action)
+
+                # for each gate for the ith annotation boundary
+                for(gate_num in 1:length(tmpList)){
+                    # all gates lower than boundaries[1] are set to boundaries[1]
+                    if(tmpList[[gate_num]][i]  < boundaries[1]){
+                        tmpList[[gate_num]][i] <- boundaries[1]
+                    } else if(tmpList[[gate_num]][i]  > boundaries[2]){
+                        tmpList[[gate_num]][i] <- boundaries[2]
+                    }
+                } # could make more efficient if we sort tmpList first
+
+            }
+
             outList[[channel]] <- tmpList
+            # unique(as.numeric(tmpList))
         }
         # save the updated annotation boundaries
         saveRDS(outList,
@@ -50,9 +77,8 @@
                           "faustData",
                           "gateData",
                           paste0(parentNode,"_resList.rds")))
-    }
-    # If selectionList empty _resListPrep.rds is copied to _resList.rds
-    else {
+    } else {
+        # If selectionList empty _resListPrep.rds is copied to _resList.rds
         file.copy(
             from = file.path(normalizePath(projectPath),
                              "faustData",
