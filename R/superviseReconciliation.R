@@ -1,7 +1,3 @@
-
-projectPath = projr::projr_path_get("cache-a055", "faust_v1")
-debugFlag = TRUE
-
 .superviseReconciliation <- function(projectPath,debugFlag)
 {
     # parentNode is whatever is stored in the sanitizedCellPopStr.rds file - often "root"
@@ -14,14 +10,6 @@ debugFlag = TRUE
                                        "faustData",
                                        "metaData",
                                        "selectionList.rds"))
-
-    selectionList = list(
-        "CD3" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
-        "CD4" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
-        "CD8" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
-        "HLADR" = list("actionType" = "PostSelection", action = c(0.45, 0.55)),
-        "Perforin" = list("actionType" = "PostSelection", action = c(0.45, 0.55))
-    )
 
     if (length(selectionList) > 0){
         if (debugFlag) print("Selection specific reconciled annotation boundaries.")
@@ -42,8 +30,6 @@ debugFlag = TRUE
             print("Proceding as if these are controlled values.")
         }
         for (channel in supervisedChannels) {
-            # channel = "CD4"
-            # channel = "HLADR"
             # use the selection list to set the standard
             # current annotation boundaries
             tmpList <- outList[[channel]] 
@@ -69,7 +55,6 @@ debugFlag = TRUE
             }
 
             outList[[channel]] <- tmpList
-            # unique(as.numeric(tmpList))
         }
         # save the updated annotation boundaries
         saveRDS(outList,
