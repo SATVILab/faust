@@ -19,12 +19,12 @@
     {
         stop("annotationsApproved must be set to a single boolean value.")
     }
-    if ((!is.na(supervisedList)) && (length(setdiff(names(supervisedList),activeChannels))))
+    if ((any(!is.na(supervisedList))) && (length(setdiff(names(supervisedList),activeChannels))))
     {
         print("supervisedList is attempting to supervise a channel")
         stop("not in the activeChannels vector.")
     }
-    if ((!is.na(supervisedList)) && (length(supervisedList) > length(activeChannels)))
+    if ((any(!is.na(supervisedList))) && (length(supervisedList) > length(activeChannels)))
     {
         print("supervisedList is attempting to supervise more channels")
         stop("than those listed in the activeChannels vector.")
@@ -142,7 +142,7 @@
     {
         stop("debugFlag must be set to TRUE xor FALSE.")
     }
-    if ((!is.na(supervisedList)) && (!is.list(supervisedList)))
+    if ((any(!is.na(supervisedList))) && (!is.list(supervisedList)))
     {
         stop("supervisedList must be a named list.")
     }
