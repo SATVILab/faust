@@ -37,18 +37,18 @@
             supervision <- selectionList[[channel]] 
 
             # Inform user if they specified the incorrect number of quantiles
-            dif_lengths <- FALSE
+            difLen <- FALSE
             if(length(supervision) != length(tmpList[[1]])){
                 print(paste0(length(supervision)," quantile set(s) was/were provided for channel ", channel, " but ", length(tmpList[[1]])," gate(s) was/were identified." ))
                 print("Using the first quantile set for all gates.")
-                dif_lengths <- TRUE
+                difLen <- TRUE
             }
             
             # for each annotation boundary for a given sample and marker
             for(gateNum in 1:length(tmpList[[1]])){
                 # calculate desired upper and lower bounds
                 vals <- sapply(tmpList, function(x) x[gateNum]) 
-                boundaries <- quantile(vals, supervision[[ifelse(dif_lengths,1,gateNum)]]) 
+                boundaries <- quantile(vals, supervision[[ifelse(difLen,1,gateNum)]]) 
 
                 # for each gate for the ith annotation boundary
                 for(sampleNum  in 1:length(tmpList)){
