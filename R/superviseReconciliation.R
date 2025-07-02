@@ -38,9 +38,8 @@
             
             # for each annotation boundary for a given sample and marker
             for(i in 1:length(tmpList[[1]])){
-                # i = 1
                 vals = sapply(tmpList, function(x) x[i]) # get all of the ith annotation boundaries
-                boundaries = quantile(vals, supervision$action)
+                boundaries = quantile(vals, supervision[[1]]) # 1 -> i if allow dif quantiles to be specified for dif gates
 
                 # for each gate for the ith annotation boundary
                 for(gate_num in 1:length(tmpList)){
@@ -51,9 +50,7 @@
                         tmpList[[gate_num]][i] <- boundaries[2]
                     }
                 } # could make more efficient if we sort tmpList first
-
             }
-
             outList[[channel]] <- tmpList
         }
         # save the updated annotation boundaries
@@ -78,7 +75,3 @@
     }
     return()
 }
-
-
-
-
