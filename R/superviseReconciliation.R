@@ -1,3 +1,29 @@
+
+projectPath = "../DataProcessed25DLCICEPipeline/_tmp/a055/faust_v1"
+debugFlag = TRUE
+
+# New format of supervisedList
+supervisedList = list("CD3" = list("actionType" = "PostSelection", action = list(c(0.1, 0.9))),
+                     "CD4" = list("actionType" = "PostSelection", action = list(c(0.1, 0.9), c(0.25, 0.75))),
+                     "CD8" = list("actionType" = "PostSelection", action = list(c(0.1, 0.9))),
+                     "HLADR" = list("actionType" = "PostSelection", action = list(c(0.1, 0.9))),
+                     "Perforin" = list("actionType" = "PostSelection", action = list(c(0.1, 0.9))))
+
+# Old format of supervisedList
+# supervisedList = list("CD3" = list("actionType" = "PostSelection", action = c(0.1, 0.9)),
+#                      "CD4" = list("actionType" = "PostSelection", action = c(0.1, 0.9)),
+#                      "CD8" = list("actionType" = "PostSelection", action = c(0.1, 0.9)),
+#                      "HLADR" = list("actionType" = "PostSelection", action = c(0.1, 0.9)),
+#                      "Perforin" = list("actionType" = "PostSelection", action = c(0.1, 0.9)))
+
+# selectionList = list(
+#         "CD3" = list(c(0.1, 0.9)),
+#         "CD4" = list(c(0.1, 0.9), c(0.25, 0.75)),
+#         "CD8" = list(c(0.1, 0.9)),
+#         "HLADR" = list(c(0.1, 0.9)),
+#         "Perforin" = list(c(0.1, 0.9))
+#     )
+
 .superviseReconciliation <- function(projectPath,debugFlag)
 {
     # parentNode is whatever is stored in the sanitizedCellPopStr.rds file - often "root"
@@ -39,7 +65,7 @@
             # for each annotation boundary for a given sample and marker
             for(i in 1:length(tmpList[[1]])){
                 vals = sapply(tmpList, function(x) x[i]) # get all of the ith annotation boundaries
-                boundaries = quantile(vals, supervision[[1]]) # 1 -> i if allow dif quantiles to be specified for dif gates
+                boundaries = quantile(vals, supervision[[i]]) # 1 -> i if allow dif quantiles to be specified for dif gates
 
                 # for each gate for the ith annotation boundary
                 for(gate_num in 1:length(tmpList)){

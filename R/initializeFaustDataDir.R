@@ -95,7 +95,7 @@
 
     #always update the supervision artifacts in the metaData direcotry
     forceList <- selectionList <- preferenceList <- list()
-    if (!is.na(supervisedList)) {
+    if (any(!is.na(supervisedList))) {
         #supervisedList is a named list of lists
         #name of slot in list: marker
         #list under marker slot 1: string describing type of supervision.
