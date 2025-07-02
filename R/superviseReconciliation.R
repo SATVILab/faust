@@ -37,25 +37,26 @@
             supervision <- selectionList[[channel]] 
 
             # Inform user if they specified the incorrect number of quantiles
+            dif_lengths <- FALSE
             if(length(supervision) != length(tmpList[[1]])){
                 print(paste0(length(supervision)," quantile set(s) was/were provided for channel ", channel, " but ", length(tmpList[[1]])," gate(s) was/were identified." ))
                 print("Using the first quantile set for all gates.")
-                dif_lengths = TRUE
+                dif_lengths <- TRUE
             }
             
             # for each annotation boundary for a given sample and marker
-            for(i in 1:length(tmpList[[1]])){
+            for(gateNum in 1:length(tmpList[[1]])){
                 # calculate desired upper and lower bounds
-                vals = sapply(tmpList, function(x) x[i]) 
-                boundaries = quantile(vals, supervision[[ifelse(dif_lengths,1,i)]]) 
+                vals <- sapply(tmpList, function(x) x[gateNum]) 
+                boundaries <- quantile(vals, supervision[[ifelse(dif_lengths,1,gateNum)]]) 
 
                 # for each gate for the ith annotation boundary
-                for(gate_num in 1:length(tmpList)){
+                for(sampleNum  in 1:length(tmpList)){
                     # all gates lower than boundaries[1] are set to boundaries[1]
-                    if(tmpList[[gate_num]][i]  < boundaries[1]){
-                        tmpList[[gate_num]][i] <- boundaries[1]
-                    } else if(tmpList[[gate_num]][i]  > boundaries[2]){
-                        tmpList[[gate_num]][i] <- boundaries[2]
+                    if(tmpList[[sampleNum ]][gateNum]  < boundaries[1]){
+                        tmpList[[sampleNum ]][gateNum] <- boundaries[1]
+                    } else if(tmpList[[sampleNum ]][gateNum]  > boundaries[2]){
+                        tmpList[[sampleNum ]][gateNum] <- boundaries[2]
                     }
                 } # could make more efficient if we sort tmpList first
             }
@@ -70,15 +71,15 @@
     } else {
         # If selectionList empty _resListPrep.rds is copied to _resList.rds
         file.copy(
-            from = file.path(normalizePath(projectPath),
+            from <- file.path(normalizePath(projectPath),
                              "faustData",
                              "gateData",
                              paste0(parentNode,"_resListPrep.rds")),
-            to = file.path(normalizePath(projectPath),
+            to <- file.path(normalizePath(projectPath),
                            "faustData",
                            "gateData",
                            paste0(parentNode,"_resList.rds")),
-            overwrite = TRUE
+            overwrite <- TRUE
         )
     }
     return()
