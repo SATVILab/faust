@@ -1,66 +1,86 @@
-.superviseReconciliation <- function(projectPath,debugFlag)
+.superviseReconciliation <- function(projectPath, debugFlag)
 {
-
+    # parentNode is whatever is stored in the sanitizedCellPopStr.rds file - often "root"
     parentNode <- readRDS(file.path(normalizePath(projectPath),
                                     "faustData",
                                     "metaData",
                                     "sanitizedCellPopStr.rds"))
-    selectionList <- readRDS(file.path(normalizePath(projectPath),
+
+    # selectionList is a list of the items from the user-specified "supervisedList" which have actionType == "PostSelection"
+    selectionListUser <- readRDS(file.path(normalizePath(projectPath),
                                        "faustData",
                                        "metaData",
                                        "selectionList.rds"))
-    if (length(selectionList) > 0){
-        if (debugFlag) print("Selection specific reconciled annotation boundaries.")
-        resListPrep <- readRDS(file.path(normalizePath(projectPath),
-                                         "faustData",
-                                         "gateData",
-                                         paste0(parentNode,"_resListPrep.rds")))
-        outList <- resListPrep
-        selectedChannels <- names(resListPrep)
-        supervisedChannels <- names(selectionList)
-        if (length(setdiff(supervisedChannels,selectedChannels))) {
-            print("The following unselected channels (by depth score) are detected.")
-            print(setdiff(supervisedChannels,selectedChannels))
-            print("Proceding as if these are controlled values.")
+    userSpecifiedChannels <- names(selectionListUser)
+    
+    if (debugFlag) print("Selection specific reconciled annotation boundaries.")
+
+    # resListPrep contains the annotation boundaries for all the markers, 
+    # post accounting for forcing and preference, but not yet post-selection.
+    resListPrep <- readRDS(file.path(normalizePath(projectPath),
+                                        "faustData",
+                                        "gateData",
+                                        paste0(parentNode,"_resListPrep.rds")))
+    outList <- resListPrep
+    # all channel names
+    selectedChannels <- names(resListPrep)
+    # create default list: c(0.1, 0.9) for each gate on each marker
+    selectionList         <- list()
+    length(selectionList) <- length(selectedChannels)
+    names(selectionList)  <- selectedChannels
+    # for each gate in each channel, set the quantiles
+    for(channel in selectedChannels){
+        # If the user has specified quantiles for this channel, use them.
+        if(channel %in% userSpecifiedChannels){
+            specifiedQuantiles <- selectionListUser[[channel]]
+        }else{ 
+            # Otherwise, use the default quantiles of c(0.1, 0.9) for each gate.
+            specifiedQuantiles <- list()
+            for(gate in 1:length(outList[[channel]][[1]])){
+                specifiedQuantiles <- append(specifiedQuantiles, list(c(0.1, 0.9))) # default
+            }
         }
-        for (channel in supervisedChannels) {
-            #use the selection list to set the standard
-            tmpList <- outList[[channel]]
-            supervision <- selectionList[[channel]]
-            if (length(supervision) > length(tmpList[[1]])) {
-                stop("Attempting to set more gates than exist post-reconciliation.")
-            }
-            if (max(supervision) > length(tmpList[[1]])) {
-                stop("Attempting to set a gate beyond the last gate existing post-reconciliation.")
-            }
-            if (min(supervision) < 1) {
-                stop("Attempting to set a gate beneath the first gate existing post-reconciliation.")
-            }
-            for (gateNum in seq(length(tmpList))) {
-                tmpList[[gateNum]] <- tmpList[[gateNum]][supervision]
-            }
-            outList[[channel]] <- tmpList
+        selectionList[[channel]] <- specifiedQuantiles
+    }
+
+    for (channel in selectedChannels) {
+        # current annotation boundaries:
+        tmpList <- outList[[channel]] 
+
+        # user-specified quantiles which extreme annotation values should be shrunk towards
+        supervision <- selectionList[[channel]] 
+
+        # Inform user if they specified the incorrect number of quantiles
+        difLen <- FALSE
+        if(length(supervision) != length(tmpList[[1]])){
+            print(paste0(length(supervision)," quantile set(s) was/were provided for channel ", channel, " but ", length(tmpList[[1]])," gate(s) was/were identified." ))
+            print("Using the first quantile set for all gates.")
+            difLen <- TRUE
         }
-        saveRDS(outList,
-                file.path(normalizePath(projectPath),
-                          "faustData",
-                          "gateData",
-                          paste0(parentNode,"_resList.rds")))
+        
+        # for each annotation boundary for a given sample and marker
+        for(gateNum in 1:length(tmpList[[1]])){
+            # calculate desired upper and lower bounds
+            vals <- sapply(tmpList, function(x) x[gateNum]) 
+            boundaries <- quantile(vals, supervision[[ifelse(difLen,1,gateNum)]]) 
+
+            # for each gate for the ith annotation boundary
+            for(sampleNum  in 1:length(tmpList)){
+                # all gates lower than boundaries[1] are set to boundaries[1]
+                if(tmpList[[sampleNum ]][gateNum]  < boundaries[1]){
+                    tmpList[[sampleNum ]][gateNum] <- boundaries[1]
+                } else if(tmpList[[sampleNum ]][gateNum]  > boundaries[2]){
+                    tmpList[[sampleNum ]][gateNum] <- boundaries[2]
+                }
+            } # could make more efficient if we sort tmpList first
+        }
+        outList[[channel]] <- tmpList
     }
-    else {
-        file.copy(
-            from = file.path(normalizePath(projectPath),
-                             "faustData",
-                             "gateData",
-                             paste0(parentNode,"_resListPrep.rds")),
-            to = file.path(normalizePath(projectPath),
-                           "faustData",
-                           "gateData",
-                           paste0(parentNode,"_resList.rds")),
-            overwrite = TRUE
-        )
-    }
+    # save the updated annotation boundaries
+    saveRDS(outList,
+            file.path(normalizePath(projectPath),
+                        "faustData",
+                        "gateData",
+                        paste0(parentNode,"_resList.rds")))
     return()
 }
-
-

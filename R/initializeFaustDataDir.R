@@ -81,10 +81,12 @@
                           "channelBounds.rds"))
     }
 
-    #always sanitize the starting cell pop for problem characters.
-    sanitizedCellPopStr <- gsub("[[:punct:]]","",startingCellPop)
-    sanitizedCellPopStr <- gsub("[[:space:]]","",sanitizedCellPopStr)
-    sanitizedCellPopStr <- gsub("[[:cntrl:]]","",sanitizedCellPopStr)
+    # always sanitize the starting cell pop for problem characters.
+    # startingCellPop is a user-inputted parameter, and is often set to "root"
+    sanitizedCellPopStr <- gsub("[[:punct:]]","",startingCellPop)     # remove all punctuation from startingCellPop
+    sanitizedCellPopStr <- gsub("[[:space:]]","",sanitizedCellPopStr) # remove all spaces
+    sanitizedCellPopStr <- gsub("[[:cntrl:]]","",sanitizedCellPopStr) # remove all control chars e.g. \n, \r, \t
+    # sanitizedCellPopStr is startingCellPop w/o punctuation, spaces, control chars
     saveRDS(sanitizedCellPopStr,
             file.path(normalizePath(projectPath),
                       "faustData",
@@ -93,7 +95,7 @@
 
     #always update the supervision artifacts in the metaData direcotry
     forceList <- selectionList <- preferenceList <- list()
-    if (!is.na(supervisedList)) {
+    if (any(!is.na(supervisedList))) {
         #supervisedList is a named list of lists
         #name of slot in list: marker
         #list under marker slot 1: string describing type of supervision.

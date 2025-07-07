@@ -96,14 +96,37 @@
 #' to marker names in the active channels vector to which supervision is
 #' applied. Channels named in this list will have their gate locations modified.
 #'
-#' Supported supervision: 'Preference'. Asserts a preference for the number of
-#' annotation boundaries for a targeted marker. If this is selected, FAUST will
-#' attempt to standardize to the preferred number of boundaries across experimental
-#' units if there is empirical data to support the preference.
+#' Supported supervision: 
+#' 'Preference'. Asserts a preference for the number of annotation boundaries for 
+#' a targeted marker. If this is selected, FAUST will attempt to standardize to the 
+#' preferred number of boundaries across experimental units if there is empirical 
+#' data to support the preference.
 #'
 #' Example syntax:
-#' 
 #' supervisedList <- list(`Target_Marker` = list(actionType = "Preference", action = c(2)))
+#' 
+#' 'Force'. Forces the gate location for a targeted marker to a specific value. 
+#' 
+#' Example syntax:
+#' supervisedList <- list(`Target_Marker` = list(actionType = "Force", action = c(1000)))
+#' 
+#' 'PostSelection'. Shrinks the range of annotation boundaries for a targeted marker. 
+#' The user specifies a pair of quantiles for each gate selected for the targeted 
+#' marker. All annotation boundaries for the associated gate which are lower than the 
+#' first quantile will be set equal to the value at that quantile, while all 
+#' annotation boundaries more extreme than the second quantile will be set equal to the 
+#' value at that quantile. If the number of sets of quantiles specified is not equal
+#' to the number of gates identified, the first set of quantiles will be used for all
+#' gates.
+#' 
+#' The default is to shrink the annotation boundaries of all markers to the range of 
+#' the first and the ninth deciles.
+#' 
+#' Example syntax:
+#' supervisedList <- list(
+#'      `Target_Marker1` = list(actionType = "PostSelection", action = list(c(0, 1))),
+#'      `Target_Marker2` = list(actionType = "PostSelection", action = list(c(0.2, 0.8), c(0.5, 0.9)))
+#' )
 #'
 #' @param debugFlag Boolean value. Set to TRUE to print method status information
 #' to the console or a log file.
