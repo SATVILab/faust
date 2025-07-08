@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // addNoiseToDataVector
 std::vector<double> addNoiseToDataVector(const std::vector<double>& dataVector, double scaleGaussian, unsigned long long rSeed);
 RcppExport SEXP _faust_addNoiseToDataVector(SEXP dataVectorSEXP, SEXP scaleGaussianSEXP, SEXP rSeedSEXP) {
