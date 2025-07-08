@@ -24,7 +24,8 @@ generateAnnotationThresholds(
   densitySubSampleIterations = 1,
   archDescriptionList = list(targetArch = c("singleCPU")),
   annotationsApproved = FALSE,
-  plottingDevice = "pdf"
+  plottingDevice = "pdf",
+  annotationForestDepth = 3
 )
 }
 \arguments{
@@ -206,6 +207,12 @@ set this parameter to true before running the \code{faust} function.}
 
 \item{plottingDevice}{string with device for saving graphical output.
 By default it is set to "pdf".}
+
+\item{annotationForestDepth}{Numeric value. Number of marker combinations
+to search in the annotation forest. By default it is set to 3. Minimum
+recommended value is 2. Maximum possible is the number of markers in the
+data set. Increasing this parameter can significantly increase computation
+time.}
 }
 \value{
 generateAnnotationThresholds is used to generate standardized
