@@ -146,6 +146,43 @@
     {
         stop("supervisedList must be a named list.")
     }
+    if (any(!is.na(supervisedList)))
+    {
+        supervisedMarkers <- names(supervisedList)
+        for (markerNum in seq_along(supervisedList))
+        {
+            marker <- supervisedMarkers[markerNum]
+            markerList <- supervisedList[[markerNum]]
+            actionType <- markerList$actionType
+            action <- markerList$action
+            if (actionType %in% c("Force","Preference"))
+            {
+                if (!is.numeric(action) || is.list(action))
+                {
+                    print(paste0("supervisedList entry for marker '",marker,"' has actionType '",actionType,"'."))
+                    print("When actionType is 'Force' or 'Preference', action must be a numeric vector.")
+                    print("Example: list(actionType = \"Force\", action = c(1000))")
+                    stop("Please correct the action slot for this marker in supervisedList.")
+                }
+            }
+            else if (actionType == "PostSelection")
+            {
+                if ((!is.list(action)) || (!all(vapply(action,is.numeric,logical(1)))))
+                {
+                    print(paste0("supervisedList entry for marker '",marker,"' has actionType 'PostSelection'."))
+                    print("When actionType is 'PostSelection', action must be a list of numeric vectors.")
+                    print("Example: list(actionType = \"PostSelection\", action = list(c(0.2, 0.8), c(0.5, 0.9)))")
+                    stop("Please correct the action slot for this marker in supervisedList.")
+                }
+            }
+            else
+            {
+                print(paste0("supervisedList entry for marker '",marker,"' has an unsupported actionType: '",actionType,"'."))
+                print("Only 'Force', 'Preference' and 'PostSelection' actionType values are currently supported.")
+                stop("Please correct the actionType slot for this marker in supervisedList.")
+            }
+        }
+    }
     if ((!is.numeric(threadNum)) || (threadNum <= 0))
     {
         stop("threadNum must be an integer value larger than 0.")
